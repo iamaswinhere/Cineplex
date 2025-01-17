@@ -1,6 +1,41 @@
 * {
   transition: all 0.75s ease;
 }
+.card {
+  position: relative;
+  width: 40vh;
+  height: 50vh;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.card:hover img {
+  transform: scale(1.1);
+}
+
+.card .info {
+  position: absolute;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.card:hover .info {
+  opacity: 1;
+}
 
 .navbar {
   background-color: #333;
@@ -17,3 +52,213 @@
   font-size: 17px;
 }
 
+/* Home page */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.9);
+  animation: fadeIn 0.5s ease;
+}
+
+.modal-content {
+  position: relative;
+  margin: 15% auto;
+  padding: 20px;
+  width: 80%;
+  max-width: 500px;
+  background-color: #333;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.5s ease;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 25px;
+  color: #fff;
+  font-size: 35px;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.close:hover,
+.close:focus {
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+/* about page */
+
+.about-me-page {
+  font-family: 'Arial', sans-serif;
+  color: #f0f0f0;
+  background-color: #121212;
+  overflow: hidden;
+  height: 100vh;
+}
+
+.parallax-container {
+  height: 100%;
+}
+
+.background-layer .background {
+  background: linear-gradient(45deg, #1a1a1a, #333);
+  width: 100%;
+  height: 100vh;
+}
+
+.intro-section, .skills-section {
+  text-align: center;
+  padding: 2rem;
+}
+
+h1, h2 {
+  margin-bottom: 1rem;
+  color: #ff5722;
+}
+
+p, li {
+  color: #f0f0f0;
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+}
+
+/* contact page */
+
+.contact-form-page {
+  font-family: 'Arial', sans-serif;
+  color: #f0f0f0;
+  background-color: #121212;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.form-container {
+  background: #1e1e1e;
+  padding: 2rem 3rem;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+}
+
+h2 {
+  color: #ff5722;
+  margin-bottom: 1rem;
+}
+
+p {
+  margin-bottom: 1.5rem;
+  color: #ccc;
+}
+
+.social-links {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 2rem;
+}
+
+.social-btn {
+  text-decoration: none;
+  color: #f0f0f0;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.instagram {
+  background: #c13584;
+}
+
+.instagram:hover {
+  background: #e95950;
+}
+
+.linkedin {
+  background: #0077b5;
+}
+
+.linkedin:hover {
+  background: #005582;
+}
+
+.fiverr {
+  background: #1dbf73;
+}
+
+.fiverr:hover {
+  background: #17a863;
+}
+
+.upwork {
+  background: #6fda44;
+}
+
+.upwork:hover {
+  background: #57c832;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+label {
+  text-align: left;
+  color: #ccc;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: 1px solid #333;
+  background: #2e2e2e;
+  color: #fff;
+  outline: none;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #ff5722;
+}
+
+.submit-btn {
+  background: #ff5722;
+  color: #fff;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.submit-btn:hover {
+  background: #e64a19;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-50px); }
+  to { transform: translateY(0); }
+}
