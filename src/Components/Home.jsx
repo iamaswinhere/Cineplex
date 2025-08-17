@@ -1,237 +1,236 @@
-import { Container, Row, Col, Card } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import { Row, Col, Card as BootstrapCard, Modal, Button } from 'react-bootstrap';
+import { motion } from 'framer-motion';
 
 const Home = ({ searchQuery }) => {
-
-    const searchValue = searchQuery;
-    useEffect(() => {
-        if (searchValue) {
-            const fetchSearchedMovies = async () => {
-                try {
-                    const response = await axios.get('https://api.themoviedb.org/3/search/movie', {
-                        params: {
-                            api_key: '3defdeaf2668fb00e771941a5f0c68b3',
-                            query: searchValue,
-                        },
-                    });
-                    setMovies(response.data.results);
-                } catch (error) {
-                    console.error('Error fetching searched movies:', error);
-                }
-            };
-
-            fetchSearchedMovies();
-        }
-    }, [searchValue]);
     const [movies, setMovies] = useState([]);
-
-    useEffect(() => {
-        const fetchMovies = async () => {
-            try {
-                const response = await axios.get('https://api.themoviedb.org/3/movie/popular', {
-                    params: {
-                        api_key: '3defdeaf2668fb00e771941a5f0c68b3',
-                    },
-                });
-                setMovies(response.data.results);
-            } catch (error) {
-                console.error('Error fetching movies:', error);
-            }
-        };
-
-        fetchMovies();
-    }, []);
-
-    const divStyle = {
-        backgroundImage: `url(${movies.length > 0 ? `https://image.tmdb.org/t/p/w500${movies[0].backdrop_path}` : '...'})`,
-        backgroundSize: 'cover',
-        minHeight: '70vh',
-        backgroundPosition: 'center',
-    };
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (movies.length > 0) {
-                const randomIndex = Math.floor(Math.random() * movies.length);
-                setMovies((prevMovies) => {
-                    const newMovies = [...prevMovies];
-                    const [firstMovie] = newMovies.splice(randomIndex, 1);
-                    newMovies.unshift(firstMovie);
-                    return newMovies;
-                });
-            }
-        }, 5000);
-
-        return () => clearInterval(interval);
-    }, [movies]);
-
-
-    const [selectedMovie, setSelectedMovie] = useState(null);
-
-    const handleCardClick = (movie) => {
-        setSelectedMovie(movie);
-    };
-
-    const handleCloseModal = () => {
-        setSelectedMovie(null);
-    };
-
+    const [heroMovie, setHeroMovie] = useState(null);
     const [topRatedSeries, setTopRatedSeries] = useState([]);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [trendingMovies, setTrendingMovies] = useState([]);
+    const [upcomingMovies, setUpcomingMovies] = useState([]);
+    const [actionMovies, setActionMovies] = useState([]);
+    const [comedyMovies, setComedyMovies] = useState([]);
 
     useEffect(() => {
-        const fetchSeries = async () => {
+        const fetchContent = async (endpoint, setter, isHero = false) => {
             try {
-                const response = await axios.get('https://api.themoviedb.org/3/tv/top_rated', {
-                    params: {
-                        api_key: '3defdeaf2668fb00e771941a5f0c68b3',
-                    },
-                });
-                setTopRatedSeries(response.data.results);
+                const params = { api_key: '3defdeaf2668fb00e771941a5f0c68b3', ...(searchQuery && { query: searchQuery }) };
+                const response = await axios.get(`https://api.themoviedb.org/3/${endpoint}`, { params });
+                const results = response.data.results.filter(m => m.backdrop_path && m.poster_path);
+                setter(results);
+                if (isHero && results.length > 0) {
+                    setHeroMovie(results[0]);
+                }
             } catch (error) {
-                console.error('Error fetching series:', error);
+                console.error(`Error fetching ${endpoint} data:`, error);
             }
         };
 
-        fetchSeries();
-    }, []);
+        const searchEndpoint = searchQuery ? 'search/multi' : 'movie/popular';
+        fetchContent(searchEndpoint, setMovies, !searchQuery);
+        if (!searchQuery) {
+            fetchContent('tv/top_rated', setTopRatedSeries);
+            fetchContent('trending/movie/week', setTrendingMovies);
+            fetchContent('movie/upcoming', setUpcomingMovies);
+            fetchContent('discover/movie?with_genres=28', setActionMovies); // Genre ID for Action
+            fetchContent('discover/movie?with_genres=35', setComedyMovies); // Genre ID for Comedy
+        } else {
+             setTopRatedSeries([]);
+             setTrendingMovies([]);
+             setUpcomingMovies([]);
+             setActionMovies([]);
+             setComedyMovies([]);
+        }
+    }, [searchQuery]);
+    
+    const handleCardClick = (item) => setSelectedItem(item);
+    const handleCloseModal = () => setSelectedItem(null);
+
+    const divStyle = heroMovie ? { backgroundImage: `url(https://image.tmdb.org/t/p/original${heroMovie.backdrop_path})` } : { backgroundColor: '#111' };
 
     return (
         <>
-            <div style={{ backgroundColor: 'black' }}>
+            {!searchQuery && heroMovie && (
                 <div className="home-section" style={divStyle}>
-                    <div className="overlay" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%)' }}>
-
-                        {/* Hero Section */}
-                        <Container fluid className="d-flex align-items-center justify-content-center" style={{ minHeight: '70vh' }}>
-                            <Row>
-                                <Col md={6}>
-                                    <h1 className="home-title text-white text-center">
-                                        {movies.length > 0 ? movies[0].title : 'Welcome to Cineflix'}
-                                    </h1>
-                                    <p className="home-description text-white text-center">
-                                        {movies.length > 0 ? movies[0].overview : 'Discover the latest movies and enjoy your time with Cineflix.'}
-                                    </p>
-                                </Col>
-                                <Col md={6} className="d-none d-md-block">
-                                    <Card className="movie-card mx-auto" style={{ backgroundColor: 'black', maxWidth: '45vh', maxHeight: '55vh', margin: '0 auto', animation: 'fadeIn 1s' }}>
-                                        <Card.Img variant="top" src={movies.length > 0 ? `https://image.tmdb.org/t/p/w500${movies[0].backdrop_path}` : 'https://ideogram.ai/assets/progressive-image/balanced/response/3fGoHE9SSa-tgMYJNytoAg'} style={{ height: '50vh', width: '40vh' }} />
-                                    </Card>
-                                </Col>
-                            </Row>
-                        </Container>
+                    <div className="overlay"></div>
+                    <div className="hero-content">
+                        <motion.h1 
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.8 }}
+                          className="home-title text-white">
+                            {heroMovie.title || heroMovie.name}
+                        </motion.h1>
+                        <motion.p 
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.8, delay: 0.2 }}
+                          className="home-description text-white">
+                            {heroMovie.overview}
+                        </motion.p>
                     </div>
                 </div>
-                <br />
+            )}
 
-            <Container fluid>
-                <h4 className='mx-5 text-white'>Searched Movies</h4>
-                <Row className="flex-nowrap overflow-auto">
-                    {movies.map((movie) => (
-                        <Col key={movie.id} xs={6} md={4} lg={3} className="mb-4">
-                            <Card className="movie-card" style={{ backgroundColor: 'black', animation: 'fadeIn 1s' }} onClick={() => handleCardClick(movie)}>
-                                <Card.Img variant="top" src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} />
-                                <Card.Body>
-                                    <Card.Title className="text-white">{movie.title}</Card.Title>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-            </Container>
-
-                {!searchValue && (
+            <div className={`movie-grid-container ${searchQuery ? 'search-active' : ''}`}>
+                {searchQuery ? (
                     <>
-                        <h4 className='mx-5 text-white'>Popular Movies</h4>
-                        <Row className="flex-nowrap overflow-auto">
-                            {movies.map((movie) => (
-                                <Col key={movie.id} xs={6} md={4} lg={3} className="mb-4">
-                                    <Card className="movie-card" style={{ backgroundColor: 'black', animation: 'fadeIn 1s' }} onClick={() => handleCardClick(movie)}>
-                                        <Card.Img variant="top" src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} />
-                                        <Card.Body>
-                                            <Card.Title className="text-white">{movie.title}</Card.Title>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
+                        <h3 className="section-title">Search Results</h3>
+                        <div className="movie-row horizontal-scroll">
+                            {movies.map((item) => (
+                                <div key={item.id} className="movie-col">
+                                    <BootstrapCard className="card" onClick={() => handleCardClick(item)}>
+                                        <BootstrapCard.Img variant="top" src={`https://image.tmdb.org/t/p/w500${item.poster_path || item.backdrop_path}`} />
+                                        <div className="card-info">
+                                            <h5 className="card-title">{item.title || item.name}</h5>
+                                        </div>
+                                    </BootstrapCard>
+                                </div>
                             ))}
-                        </Row>
-                    </>
-                )}
-
-                <br />
-                <h4 className='mx-5 text-white'>Top Rated Series</h4>
-                <Row className="flex-nowrap overflow-auto">
-                    {topRatedSeries.map((series) => (
-                        <Col key={series.id} xs={6} md={4} lg={3} className="mb-4">
-                            <Card className="series-card" style={{ backgroundColor: 'black', animation: 'fadeIn 1s' }} onClick={() => handleCardClick(series)}>
-                                <Card.Img variant="top" src={`https://image.tmdb.org/t/p/w500${series.poster_path}`} />
-                                <Card.Body>
-                                    <Card.Title className="text-white">{series.name}</Card.Title>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-
-                <br />
-
-                <h4 className='mx-5 text-white'>Korean Language Movies and Series</h4>
-                <Row className="flex-nowrap overflow-auto">
-                    {movies
-                        .filter((movie) => movie.original_language === 'ko')
-                        .map((movie) => (
-                            <Col key={movie.id} xs={6} md={4} lg={3} className="mb-4">
-                                <Card className="movie-card" style={{ backgroundColor: 'black', animation: 'fadeIn 1s' }} onClick={() => handleCardClick(movie)}>
-                                    <Card.Img variant="top" src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} />
-                                    <Card.Body>
-                                        <Card.Title className="text-white">{movie.title}</Card.Title>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
-                    {topRatedSeries
-                        .filter((series) => series.original_language === 'ko')
-                        .map((series) => (
-                            <Col key={series.id} xs={6} md={4} lg={3} className="mb-4">
-                                <Card className="series-card" style={{ backgroundColor: 'black', animation: 'fadeIn 1s' }} onClick={() => handleCardClick(series)}>
-                                    <Card.Img variant="top" src={`https://image.tmdb.org/t/p/w500${series.poster_path}`} />
-                                    <Card.Body>
-                                        <Card.Title className="text-white">{series.name}</Card.Title>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
-                </Row>
-
-                {selectedMovie && (
-                    <div className="modal " style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.6)' }}>
-                        <div className="modal-dialog">
-                            <div className="modal-content bg-dark">
-                                <div className="modal-header">
-                                    <h5 className="modal-title text-white text-center">{selectedMovie.title}</h5>
-                                    <button type="button" className="close bg-dark text-white" onClick={handleCloseModal}>
-                                        <span>&times;</span>
-                                    </button>
-                                </div>
-                                <div className="modal-body">
-                                    <img src={`https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`} alt={selectedMovie.title} style={{ width: '100%' }} />
-                                    <p className='text-white text-center my-4'>{selectedMovie.overview}</p>
-                                </div>
-                            </div>
                         </div>
-                    </div>
+                    </>
+                ) : (
+                    <>
+                        <h3 className="section-title">Popular Movies</h3>
+                        <div className="movie-row horizontal-scroll">
+                            {movies.map((item) => (
+                                <div key={item.id} className="movie-col">
+                                    <BootstrapCard className="card" onClick={() => handleCardClick(item)}>
+                                        <BootstrapCard.Img variant="top" src={`https://image.tmdb.org/t/p/w500${item.poster_path || item.backdrop_path}`} />
+                                        <div className="card-info">
+                                            <h5 className="card-title">{item.title || item.name}</h5>
+                                        </div>
+                                    </BootstrapCard>
+                                </div>
+                            ))}
+                        </div>
+
+                        {trendingMovies.length > 0 && (
+                            <>
+                                <h3 className="section-title mt-5">Trending This Week</h3>
+                                <div className="movie-row horizontal-scroll">
+                                    {trendingMovies.map((item) => (
+                                        <div key={item.id} className="movie-col">
+                                            <BootstrapCard className="card" onClick={() => handleCardClick(item)}>
+                                                <BootstrapCard.Img variant="top" src={`https://image.tmdb.org/t/p/w500${item.poster_path || item.backdrop_path}`} />
+                                                <div className="card-info">
+                                                    <h5 className="card-title">{item.title || item.name}</h5>
+                                                </div>
+                                            </BootstrapCard>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {upcomingMovies.length > 0 && (
+                            <>
+                                <h3 className="section-title mt-5">Upcoming Movies</h3>
+                                <div className="movie-row horizontal-scroll">
+                                    {upcomingMovies.map((item) => (
+                                        <div key={item.id} className="movie-col">
+                                            <BootstrapCard className="card" onClick={() => handleCardClick(item)}>
+                                                <BootstrapCard.Img variant="top" src={`https://image.tmdb.org/t/p/w500${item.poster_path || item.backdrop_path}`} />
+                                                <div className="card-info">
+                                                    <h5 className="card-title">{item.title || item.name}</h5>
+                                                </div>
+                                            </BootstrapCard>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {actionMovies.length > 0 && (
+                            <>
+                                <h3 className="section-title mt-5">Action Movies</h3>
+                                <div className="movie-row horizontal-scroll">
+                                    {actionMovies.map((item) => (
+                                        <div key={item.id} className="movie-col">
+                                            <BootstrapCard className="card" onClick={() => handleCardClick(item)}>
+                                                <BootstrapCard.Img variant="top" src={`https://image.tmdb.org/t/p/w500${item.poster_path || item.backdrop_path}`} />
+                                                <div className="card-info">
+                                                    <h5 className="card-title">{item.title || item.name}</h5>
+                                                </div>
+                                            </BootstrapCard>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {comedyMovies.length > 0 && (
+                            <>
+                                <h3 className="section-title mt-5">Comedy Movies</h3>
+                                <div className="movie-row horizontal-scroll">
+                                    {comedyMovies.map((item) => (
+                                        <div key={item.id} className="movie-col">
+                                            <BootstrapCard className="card" onClick={() => handleCardClick(item)}>
+                                                <BootstrapCard.Img variant="top" src={`https://image.tmdb.org/t/p/w500${item.poster_path || item.backdrop_path}`} />
+                                                <div className="card-info">
+                                                    <h5 className="card-title">{item.title || item.name}</h5>
+                                                </div>
+                                            </BootstrapCard>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {topRatedSeries.length > 0 && (
+                            <>
+                                <h3 className="section-title mt-5">Top Rated Series</h3>
+                                <div className="movie-row horizontal-scroll">
+                                    {topRatedSeries.map((item) => (
+                                        <div key={item.id} className="movie-col">
+                                            <BootstrapCard className="card" onClick={() => handleCardClick(item)}>
+                                                <BootstrapCard.Img variant="top" src={`https://image.tmdb.org/t/p/w500${item.poster_path || item.backdrop_path}`} />
+                                                <div className="card-info">
+                                                    <h5 className="card-title">{item.title || item.name}</h5>
+                                                </div>
+                                            </BootstrapCard>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </>
                 )}
             </div>
 
-
-
+            {selectedItem && (
+                <Modal show={!!selectedItem} onHide={handleCloseModal} centered>
+                    <Modal.Header closeButton>
+                        <Modal.Title>{selectedItem.title || selectedItem.name}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Row>
+                            <Col md={4}>
+                                <img src={`https://image.tmdb.org/t/p/w500${selectedItem.poster_path || selectedItem.backdrop_path}`} alt={selectedItem.title || selectedItem.name} className="img-fluid" />
+                            </Col>
+                            <Col md={8}>
+                                <p>{selectedItem.overview}</p>
+                                <p><strong>Release Date:</strong> {selectedItem.release_date || selectedItem.first_air_date}</p>
+                                <p><strong>Rating:</strong> {selectedItem.vote_average ? selectedItem.vote_average.toFixed(1) : 'N/A'} / 10</p>
+                            </Col>
+                        </Row>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handleCloseModal}>
+                            Close
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            )}
         </>
     );
 };
 
 Home.propTypes = {
-    searchQuery: PropTypes.string.isRequired, // Ensure searchQuery is a string and required
+    searchQuery: PropTypes.string.isRequired,
 };
 
 export default Home;

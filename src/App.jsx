@@ -2,7 +2,6 @@ import './App.css'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useState } from 'react';
 import Home from './Components/Home';
-import AboutMe from './Components/About';
 import ContactForm from './Components/Contact';
 
 function App() {
@@ -60,7 +59,6 @@ function App() {
 
       <Routes>
         <Route path='/' element={<Home searchQuery={searchQuery} />} />
-        <Route path='/about' element={<AboutMe />} />
         <Route path='/contact' element={<ContactForm />} />
       </Routes>
     </Router>
